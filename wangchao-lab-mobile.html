@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab Maintenance Log – โรงพยาบาลวังเจ้า</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #f0f4f8;
+    --surface: #ffffff;
+    --surface2: #f7fafc;
+    --border: #e2e8f0;
+    --text: #1a202c;
+    --text-muted: #718096;
+    --text-light: #a0aec0;
+    --primary: #2d9b6f;
+    --primary-light: #e6f6f0;
+    --primary-dark: #1e7a56;
+    --accent: #3b82f6;
+    --accent-light: #eff6ff;
+    --warn: #f59e0b;
+    --warn-light: #fffbeb;
+    --danger: #ef4444;
+    --danger-light: #fef2f2;
+    --sidebar-w: 220px;
+    --radius: 14px;
+    --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+    transition: width .25s;
+  }
+
+  .sidebar-logo {
+    padding: 20px 18px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--primary), #38bdf8);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .logo-text { font-size: 13px; font-weight: 700; line-height: 1.2; color: var(--text); }
+  .logo-sub  { font-size: 10px; color: var(--text-muted); font-weight: 400; }
+
+  nav { flex: 1; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+
+  .nav-section-label {
+    font-size: 10px; font-weight: 600; color: var(--text-light);
+    text-transform: uppercase; letter-spacing: .08em;
+    padding: 10px 10px 4px;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 10px;
+    font-size: 13.5px; font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all .15s;
+    text-decoration: none;
+    border: none; background: none; width: 100%; text-align: left;
+  }
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { background: var(--primary-light); color: var(--primary-dark); font-weight: 600; }
+  .nav-item .icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 20px;
+    min-width: 18px; text-align: center;
+  }
+
+  .sidebar-footer {
+    padding: 12px 10px;
+    border-top: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 2px;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+  }
+
+  .topbar-title h1 { font-size: 22px; font-weight: 700; }
+  .topbar-title p  { font-size: 13px; color: var(--text-muted); margin-top: 1px; }
+
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+  .btn {
+    padding: 8px 16px; border-radius: 9px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: all .15s;
+    font-family: inherit;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--bg); color: var(--text); }
+
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), #38bdf8);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: #fff;
+    cursor: pointer;
+  }
+
+  /* ── CONTENT ── */
+  .content { padding: 24px 28px; }
+
+  /* ── PAGE / SECTION VISIBILITY ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── STAT CARDS ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+
+  .compliance-card { }
+  .compliance-label { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+  .compliance-number { font-size: 48px; font-weight: 700; color: var(--primary); line-height: 1.1; margin: 4px 0 2px; }
+  .compliance-sub { font-size: 12.5px; color: var(--text-muted); }
+  .progress-bar { height: 8px; background: #e2e8f0; border-radius: 99px; margin: 12px 0 6px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #38bdf8); border-radius: 99px; transition: width .6s ease; }
+  .progress-meta { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-muted); }
+  .check-icon { float: right; width: 40px; height: 40px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+
+  .stat-card { text-align: center; padding: 24px 16px; }
+  .stat-card .stat-icon { font-size: 24px; margin-bottom: 8px; }
+  .stat-card .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-bottom: 6px; }
+  .stat-card .stat-number { font-size: 40px; font-weight: 700; line-height: 1; }
+  .stat-card .stat-number.blue   { color: var(--accent); }
+  .stat-card .stat-number.orange { color: var(--warn); }
+
+  /* ── STATUS PILLS ── */
+  .status-row {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 12px; margin-bottom: 16px;
+  }
+
+  .status-pill {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+  .status-pill .label { font-size: 13.5px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+  .status-pill .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .status-pill .dot.red    { background: var(--danger); }
+  .status-pill .dot.orange { background: var(--warn); }
+  .status-pill .dot.green  { background: var(--primary); }
+  .status-pill .count { font-size: 30px; font-weight: 700; }
+  .status-pill .count.red    { color: var(--danger); }
+  .status-pill .count.orange { color: var(--warn); }
+  .status-pill .count.green  { color: var(--primary); }
+
+  /* ── EQUIPMENT LIST ── */
+  .section-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .section-header-left { display: flex; align-items: center; gap: 10px; }
+  .section-header-left .icon { font-size: 18px; color: var(--primary); }
+  .section-header-left h2 { font-size: 15px; font-weight: 700; }
+  .section-meta { font-size: 12px; color: var(--text-muted); }
+
+  .equip-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background .12s;
+  }
+  .equip-item:last-child { border-bottom: none; }
+  .equip-item:hover { background: var(--bg); }
+  .equip-left { display: flex; align-items: center; gap: 12px; }
+  .equip-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
+  .equip-name { font-size: 14px; font-weight: 600; }
+  .equip-sn   { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+  .equip-right { text-align: right; }
+  .equip-date-label { font-size: 11px; color: var(--text-light); }
+  .equip-date { font-size: 13px; font-weight: 600; color: var(--primary-dark); }
+  .arrow { color: var(--text-light); font-size: 16px; margin-left: 8px; }
+
+  /* ── RECENT LOGS ── */
+  .log-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background .12s;
+  }
+  .log-item:last-child { border-bottom: none; }
+  .log-item:hover { background: var(--bg); }
+  .log-icon-wrap {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--accent-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .log-body { flex: 1; }
+  .log-name { font-size: 13.5px; font-weight: 600; }
+  .log-sub  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .log-time { font-size: 11.5px; color: var(--text-light); white-space: nowrap; }
+
+  /* ── MODAL ── */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.35);
+    z-index: 200;
+    display: none; align-items: center; justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 18px;
+    width: 540px; max-width: 95vw;
+    max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    padding: 28px;
+  }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+  .modal-title { font-size: 18px; font-weight: 700; }
+  .modal-close { background: var(--bg); border: none; border-radius: 8px; padding: 6px 10px; font-size: 18px; cursor: pointer; color: var(--text-muted); }
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; display: block; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: 10px 14px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 13.5px; font-family: inherit; color: var(--text);
+    background: var(--surface); outline: none;
+    transition: border-color .15s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--primary); }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+  /* ── TABLE (Report) ── */
+  .report-filters {
+    display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .filter-input {
+    padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 9px;
+    font-size: 13px; font-family: inherit; outline: none;
+    background: var(--surface);
+    transition: border-color .15s;
+  }
+  .filter-input:focus { border-color: var(--primary); }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: left; padding: 12px 16px;
+    font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .05em; color: var(--text-muted);
+    border-bottom: 2px solid var(--border);
+    background: var(--surface2);
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .12s; cursor: pointer; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg); }
+  tbody td { padding: 13px 16px; font-size: 13.5px; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 99px;
+    font-size: 11.5px; font-weight: 600;
+  }
+  .badge-green  { background: var(--primary-light); color: var(--primary-dark); }
+  .badge-orange { background: var(--warn-light); color: #b45309; }
+  .badge-red    { background: var(--danger-light); color: #b91c1c; }
+  .badge-blue   { background: var(--accent-light); color: #1d4ed8; }
+
+  /* ── MAINTENANCE DUE ── */
+  .due-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background .12s;
+    cursor: pointer;
+  }
+  .due-item:hover { background: var(--bg); }
+  .due-item:last-child { border-bottom: none; }
+  .due-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .due-icon.overdue { background: var(--danger-light); }
+  .due-icon.soon    { background: var(--warn-light); }
+  .due-icon.ok      { background: var(--primary-light); }
+  .due-info { flex: 1; }
+  .due-name { font-size: 14px; font-weight: 600; }
+  .due-sub  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .due-date { text-align: right; font-size: 13px; font-weight: 600; }
+  .due-date.overdue { color: var(--danger); }
+  .due-date.soon    { color: var(--warn); }
+  .due-date.ok      { color: var(--primary); }
+  .due-days { font-size: 11px; color: var(--text-light); }
+
+  /* ── TEMP LOG ── */
+  .temp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  .temp-card { padding: 18px 20px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface2); }
+  .temp-card .tc-name { font-size: 12.5px; color: var(--text-muted); font-weight: 500; }
+  .temp-card .tc-val  { font-size: 32px; font-weight: 700; line-height: 1.15; margin: 4px 0; }
+  .temp-card .tc-val.ok   { color: var(--primary); }
+  .temp-card .tc-val.warn { color: var(--warn); }
+  .temp-card .tc-val.bad  { color: var(--danger); }
+  .temp-card .tc-range { font-size: 11.5px; color: var(--text-light); }
+  .temp-card .tc-time  { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+
+  /* ── LAB STAFF ── */
+  .staff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .staff-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 20px 16px;
+    text-align: center;
+    transition: box-shadow .15s;
+    cursor: pointer;
+  }
+  .staff-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+  .staff-avatar {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), #38bdf8);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 700; color: #fff;
+    margin: 0 auto 12px;
+  }
+  .staff-name  { font-size: 14px; font-weight: 700; }
+  .staff-role  { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+  .staff-badge { margin-top: 10px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 28px; right: 28px;
+    background: #1a202c; color: #fff;
+    padding: 12px 20px; border-radius: 12px;
+    font-size: 13.5px; font-weight: 500;
+    box-shadow: 0 8px 30px rgba(0,0,0,.2);
+    z-index: 999;
+    transform: translateY(20px); opacity: 0;
+    transition: all .3s;
+    pointer-events: none;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  /* ── LOGIN SCREEN ── */
+  .login-screen {
+    position: fixed; inset: 0; z-index: 999;
+    background: linear-gradient(135deg, #0f4c35 0%, #1a7a55 40%, #1e9968 70%, #38bdf8 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+  }
+  .login-screen.hidden { display: none; }
+
+  .login-card {
+    background: rgba(255,255,255,0.97);
+    border-radius: 22px;
+    padding: 44px 40px 36px;
+    width: 400px; max-width: 94vw;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.25);
+  }
+
+  .login-logo {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 28px;
+  }
+  .login-logo-icon {
+    width: 52px; height: 52px; border-radius: 16px;
+    background: linear-gradient(135deg, var(--primary), #38bdf8);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+  }
+  .login-logo-text { line-height: 1.25; }
+  .login-logo-title { font-size: 16px; font-weight: 700; color: var(--text); }
+  .login-logo-sub   { font-size: 12px; color: var(--text-muted); }
+
+  .login-heading { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .login-subheading { font-size: 13.5px; color: var(--text-muted); margin-bottom: 28px; }
+
+  .login-form-group { margin-bottom: 16px; }
+  .login-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .login-input {
+    width: 100%; padding: 11px 14px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 14px; font-family: inherit; color: var(--text);
+    background: var(--surface); outline: none;
+    transition: border-color .15s;
+  }
+  .login-input:focus { border-color: var(--primary); }
+
+  .login-input-wrap { position: relative; }
+  .login-eye {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; font-size: 17px; color: var(--text-muted);
+    padding: 2px;
+  }
+
+  .login-error {
+    background: var(--danger-light); color: #b91c1c;
+    border: 1px solid #fca5a5; border-radius: 9px;
+    padding: 10px 14px; font-size: 13px;
+    margin-bottom: 14px; display: none;
+  }
+  .login-error.show { display: block; }
+
+  .login-btn {
+    width: 100%; padding: 13px;
+    background: var(--primary); color: #fff;
+    border: none; border-radius: 11px;
+    font-size: 15px; font-weight: 700; font-family: inherit;
+    cursor: pointer; transition: background .15s;
+    margin-top: 6px;
+  }
+  .login-btn:hover { background: var(--primary-dark); }
+  .login-btn:active { transform: scale(.98); }
+
+  .login-users {
+    margin-top: 22px; padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  .login-users-label { font-size: 11.5px; color: var(--text-light); margin-bottom: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+  .login-user-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .login-chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 11px; border-radius: 99px;
+    background: var(--bg); border: 1px solid var(--border);
+    font-size: 12.5px; cursor: pointer; transition: all .12s;
+    font-family: inherit;
+  }
+  .login-chip:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary-dark); }
+  .chip-avatar {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), #38bdf8);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #fff;
+  }
+
+  /* ── LOGOUT CONFIRM ── */
+  .logout-confirm {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,.4);
+    display: none; align-items: center; justify-content: center;
+  }
+  .logout-confirm.open { display: flex; }
+  .logout-box {
+    background: var(--surface); border-radius: 18px;
+    padding: 32px 28px; width: 340px;
+    text-align: center; box-shadow: 0 16px 50px rgba(0,0,0,.2);
+  }
+  .logout-icon { font-size: 42px; margin-bottom: 12px; }
+  .logout-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .logout-sub { font-size: 13.5px; color: var(--text-muted); margin-bottom: 24px; }
+  .logout-actions { display: flex; gap: 10px; justify-content: center; }
+
+  /* ── SESSION BAR ── */
+  .session-bar {
+    background: var(--primary-light);
+    border-bottom: 1px solid #b7e3d2;
+    padding: 6px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 12px; color: var(--primary-dark);
+  }
+  .session-bar strong { font-weight: 700; }
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px){
+  body{display:block;}
+  .sidebar{
+    position:relative;
+    width:100%;
+    height:auto;
+    border-right:none;
+    border-bottom:1px solid var(--border);
+  }
+  .main{margin-left:0;}
+  .topbar,.content{padding:12px;}
+  .topbar{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:10px;
+  }
+  .topbar-actions{
+    width:100%;
+    flex-wrap:wrap;
+  }
+  .stats-grid,
+  .status-row,
+  .temp-grid,
+  .form-row{
+    grid-template-columns:1fr !important;
+  }
+  .staff-grid{
+    grid-template-columns:1fr;
+  }
+  .section-header{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:8px;
+  }
+  .equip-item,
+  .due-item,
+  .status-pill{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:8px;
+  }
+  .session-bar{
+    padding:8px 12px;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:4px;
+  }
+  table{
+    min-width:700px;
+  }
+  .modal{
+    width:95vw;
+    padding:18px;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">🧬</div>
+      <div class="login-logo-text">
+        <div class="login-logo-title">Lab Maintenance Log</div>
+        <div class="login-logo-sub">โรงพยาบาลวังเจ้า · กลุ่มงานเทคนิคการแพทย์</div>
+      </div>
+    </div>
+    <div class="login-heading">เข้าสู่ระบบ</div>
+    <div class="login-subheading">กรุณาล็อกอินด้วยบัญชีของท่าน</div>
+    <div class="login-error" id="loginError">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</div>
+    <div class="login-form-group">
+      <label class="login-label">ชื่อผู้ใช้</label>
+      <input class="login-input" id="loginUsername" placeholder="เช่น premruethai" autocomplete="username">
+    </div>
+    <div class="login-form-group">
+      <label class="login-label">รหัสผ่าน</label>
+      <div class="login-input-wrap">
+        <input class="login-input" id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="login-eye" onclick="togglePwd()" id="eyeBtn" title="แสดง/ซ่อนรหัสผ่าน">👁️</button>
+      </div>
+    </div>
+    <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="login-users">
+      <div class="login-users-label">เลือกบัญชีด่วน</div>
+      <div class="login-user-chips">
+        <button class="login-chip" onclick="quickLogin('premruethai','1234')"><div class="chip-avatar">ป</div> เปรมฤทัย</button>
+        <button class="login-chip" onclick="quickLogin('nachonok','1234')"><div class="chip-avatar">ณ</div> ณชนก</button>
+        <button class="login-chip" onclick="quickLogin('suphitchaya','1234')"><div class="chip-avatar">ส</div> สุพิชญา</button>
+        <button class="login-chip" onclick="quickLogin('anucha','1234')"><div class="chip-avatar">อ</div> อนุชา</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOGOUT CONFIRM ══ -->
+<div class="logout-confirm" id="logoutConfirm">
+  <div class="logout-box">
+    <div class="logout-icon">👋</div>
+    <div class="logout-title">ออกจากระบบ?</div>
+    <div class="logout-sub" id="logoutSubtext">คุณต้องการออกจากระบบใช่หรือไม่</div>
+    <div class="logout-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('logoutConfirm').classList.remove('open')">ยกเลิก</button>
+      <button class="btn btn-primary" style="background:var(--danger)" onclick="confirmLogout()">ออกจากระบบ</button>
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🧬</div>
+    <div>
+      <div class="logo-text">Lab Maintenance</div>
+      <div class="logo-sub">โรงพยาบาลวังเจ้า</div>
+    </div>
+  </div>
+
+  <nav>
+    <div class="nav-section-label">หลัก</div>
+    <button class="nav-item active" onclick="showPage('dashboard',this)">
+      <span class="icon">📊</span> Dashboard
+    </button>
+    <button class="nav-item" onclick="showPage('report',this)">
+      <span class="icon">📋</span> Report
+    </button>
+    <button class="nav-item" onclick="showPage('maintenance',this)">
+      <span class="icon">🔧</span> Maintenance Due
+      <span class="nav-badge" id="dueBadge">3</span>
+    </button>
+    <button class="nav-item" onclick="showPage('temperature',this)">
+      <span class="icon">🌡️</span> Temperature Logs
+    </button>
+
+    <div class="nav-section-label">ระบบ</div>
+    <button class="nav-item" onclick="showPage('staff',this)">
+      <span class="icon">👥</span> Lab Staff
+    </button>
+    <button class="nav-item" onclick="showPage('feedback',this)">
+      <span class="icon">💬</span> Feedback
+    </button>
+    <button class="nav-item" onclick="showPage('settings',this)">
+      <span class="icon">⚙️</span> Settings
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="nav-item" onclick="alert('กำลังเปิดคู่มือ...')">
+      <span class="icon">📖</span> User Manual
+    </button>
+    <button class="nav-item" onclick="requestLogout()">
+      <span class="icon">🚪</span> Sign Out
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title">
+      <h1 id="pageTitle">วังเจ้า</h1>
+      <p id="pageDate"></p>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" onclick="openModal('logModal')">+ บันทึกใหม่</button>
+      <button class="btn btn-primary" onclick="openModal('logModal')">✚ เพิ่มเครื่องมือ</button>
+      <div class="avatar" title="เปรมฤทัย หลอมทอง">ป</div>
+    </div>
+  </div>
+
+  <!-- SESSION BAR -->
+  <div class="session-bar" id="sessionBar">
+    <span>เข้าสู่ระบบในฐานะ: <strong id="sessionName">–</strong> &nbsp;·&nbsp; <span id="sessionRole">–</span></span>
+    <span id="sessionTime" style="font-family:'IBM Plex Mono',monospace;font-size:11.5px"></span>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="page active" id="page-dashboard">
+
+      <div class="stats-grid">
+        <!-- Compliance -->
+        <div class="card compliance-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div class="compliance-label">COMPLIANCE</div>
+              <div class="compliance-number" id="compliancePct">100%</div>
+              <div class="compliance-sub">บันทึกครบทุกเครื่อง</div>
+            </div>
+            <div class="check-icon">✅</div>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:100%"></div></div>
+          <div class="progress-meta">
+            <span>2 บันทึกแล้ว</span>
+            <span>2 เครื่องทั้งหมด</span>
+          </div>
+        </div>
+
+        <!-- เครื่องทั้งหมด -->
+        <div class="card stat-card">
+          <div class="stat-icon">🔬</div>
+          <div class="stat-label">เครื่องทั้งหมด</div>
+          <div class="stat-number blue" id="totalEquip">2</div>
+        </div>
+
+        <!-- รอบันทึก -->
+        <div class="card stat-card">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-label">รอบันทึก</div>
+          <div class="stat-number orange" id="pendingCount">0</div>
+        </div>
+      </div>
+
+      <div class="status-row">
+        <div class="status-pill">
+          <div class="label"><span class="dot red"></span> เร่งด่วน</div>
+          <div class="count red" id="urgentCount">0</div>
+        </div>
+        <div class="status-pill">
+          <div class="label"><span class="dot orange"></span> เฝ้าระวัง</div>
+          <div class="count orange" id="watchCount">0</div>
+        </div>
+        <div class="status-pill">
+          <div class="label"><span class="dot green"></span> บันทึกแล้ว</div>
+          <div class="count green" id="doneCount">2</div>
+        </div>
+      </div>
+
+      <!-- Equipment -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-header-left">
+            <span class="icon">🔬</span>
+            <h2>เครื่องทั้งหมด</h2>
+          </div>
+          <span class="section-meta" id="equipMeta">2 เครื่อง</span>
+        </div>
+        <div id="equipList">
+          <div class="equip-item">
+            <div class="equip-left">
+              <div class="equip-dot"></div>
+              <div>
+                <div class="equip-name">Q4Lyte ex</div>
+                <div class="equip-sn">S/N 1704105 · ปกติ</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center">
+              <div class="equip-right">
+                <div class="equip-date-label">บันทึกล่าสุด</div>
+                <div class="equip-date">วันนี้</div>
+              </div>
+              <span class="arrow">›</span>
+            </div>
+          </div>
+          <div class="equip-item">
+            <div class="equip-left">
+              <div class="equip-dot"></div>
+              <div>
+                <div class="equip-name">XL-640</div>
+                <div class="equip-sn">S/N 645440 · ปกติ</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center">
+              <div class="equip-right">
+                <div class="equip-date-label">บันทึกล่าสุด</div>
+                <div class="equip-date">วันนี้</div>
+              </div>
+              <span class="arrow">›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent logs -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-header-left">
+            <span class="icon">⏱️</span>
+            <h2>บันทึกล่าสุด</h2>
+          </div>
+          <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px" onclick="showPage('report', document.querySelectorAll('.nav-item')[1])">ดูทั้งหมด</button>
+        </div>
+        <div id="recentLogs">
+          <div class="log-item">
+            <div class="log-icon-wrap">🧫</div>
+            <div class="log-body">
+              <div class="log-name">XL-640</div>
+              <div class="log-sub">Daily · เปรมฤทัย หลอมทอง</div>
+            </div>
+            <div class="log-time">2 ชั่วโมงที่แล้ว</div>
+          </div>
+          <div class="log-item">
+            <div class="log-icon-wrap">🧫</div>
+            <div class="log-body">
+              <div class="log-name">Q4Lyte ex</div>
+              <div class="log-sub">Daily · เปรมฤทัย หลอมทอง</div>
+            </div>
+            <div class="log-time">2 ชั่วโมงที่แล้ว</div>
+          </div>
+          <div class="log-item">
+            <div class="log-icon-wrap">🧫</div>
+            <div class="log-body">
+              <div class="log-name">Q4Lyte ex</div>
+              <div class="log-sub">Daily · ณชนก พ่วงพี่อภิชัย</div>
+            </div>
+            <div class="log-time">4 ชั่วโมงที่แล้ว</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ REPORT ══ -->
+    <div class="page" id="page-report">
+      <div class="report-filters">
+        <input class="filter-input" type="text" placeholder="🔍 ค้นหาเครื่องมือ..." oninput="filterTable(this.value)">
+        <select class="filter-input" id="filterEquip" onchange="filterTable()">
+          <option value="">เครื่องทั้งหมด</option>
+          <option>Q4Lyte ex</option>
+          <option>XL-640</option>
+          <option>ADVIA 2120i</option>
+        </select>
+        <select class="filter-input" id="filterType">
+          <option value="">ประเภทงาน</option>
+          <option>Daily</option>
+          <option>Weekly</option>
+          <option>Monthly</option>
+        </select>
+        <input class="filter-input" type="date" id="filterDate">
+        <button class="btn btn-primary" onclick="openModal('logModal')">+ บันทึกใหม่</button>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-header-left">
+            <span class="icon">📋</span>
+            <h2>รายงานการบำรุงรักษา</h2>
+          </div>
+          <span class="section-meta">ทั้งหมด 12 รายการ</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="reportTable">
+            <thead>
+              <tr>
+                <th>วันที่</th>
+                <th>เครื่องมือ</th>
+                <th>ประเภท</th>
+                <th>ผู้บันทึก</th>
+                <th>ผลการตรวจ</th>
+                <th>สถานะ</th>
+              </tr>
+            </thead>
+            <tbody id="reportBody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ MAINTENANCE DUE ══ -->
+    <div class="page" id="page-maintenance">
+      <div class="section-card" style="margin-bottom:14px">
+        <div class="section-header">
+          <div class="section-header-left">
+            <span class="icon">🔴</span>
+            <h2>เกินกำหนด</h2>
+          </div>
+        </div>
+        <div class="due-item">
+          <div class="due-icon overdue">⚠️</div>
+          <div class="due-info">
+            <div class="due-name">ADVIA 2120i</div>
+            <div class="due-sub">S/N 3082019 · Monthly Calibration</div>
+          </div>
+          <div class="due-date overdue">
+            เกินกำหนด 5 วัน
+            <div class="due-days">ครบ 5 มิ.ย. 2569</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card" style="margin-bottom:14px">
+        <div class="section-header">
+          <div class="section-header-left">
+            <span class="icon">🟡</span>
+            <h2>ใกล้ถึงกำหนด (7 วัน)</h2>
+          </div>
+        </div>
+        <div class="due-item">
+          <div class="due-icon soon">🔧</div>
+          <div class="due-info">
+            <div class="due-name">Q4Lyte ex</div>
+            <div class="due-sub">S/N 1704105 · Weekly QC Check</div>
+          </div>
+          <div class="due-date soon">
+            อีก 2 วัน
+            <div class="due-days">ครบ 13 มิ.ย. 2569</div>
+          </div>
+        </div>
+        <div class="due-item">
+          <div class="due-icon soon">🔧</div>
+          <div class="due-info">
+            <div class="due-name">XL-640</div>
+            <div class="due-sub">S/N 645440 · Filter Replacement</div>
+          </div>
+          <div class="due-date soon">
+            อีก 6 วัน
+            <div class="due-days">ครบ 17 มิ.ย. 2569</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-header-left">
+            <span class="icon">🟢</span>
+            <h2>ปกติ</h2>
+          </div>
+        </div>
+        <div class="due-item">
+          <div class="due-icon ok">✅</div>
+          <div class="due-info">
+            <div class="due-name">Q4Lyte ex</div>
+            <div class="due-sub">S/N 1704105 · Daily Maintenance</div>
+          </div>
+          <div class="due-date ok">
+            อีก 1 วัน
+            <div class="due-days">ครบ 12 มิ.ย. 2569</div>
+          </div>
+        </div>
+        <div class="due-item">
+          <div class="due-icon ok">✅</div>
+          <div class="due-info">
+            <div class="due-name">XL-640</div>
+            <div class="due-sub">S/N 645440 · Daily Maintenance</div>
+          </div>
+          <div class="due-date ok">
+            อีก 1 วัน
+            <div class="due-days">ครบ 12 มิ.ย. 2569</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TEMPERATURE ══ -->
+    <div class="page" id="page-temperature">
+      <div class="temp-grid">
+        <div class="temp-card">
+          <div class="tc-name">ตู้เย็น 1 (Reagent)</div>
+          <div class="tc-val ok">4.2°C</div>
+          <div class="tc-range">เป้า: 2–8°C</div>
+          <div class="tc-time">บันทึกล่าสุด 08:00</div>
+        </div>
+        <div class="temp-card">
+          <div class="tc-name">ตู้เย็น 2 (Sample)</div>
+          <div class="tc-val warn">8.9°C</div>
+          <div class="tc-range">เป้า: 2–8°C ⚠️ สูงเกิน</div>
+          <div class="tc-time">บันทึกล่าสุด 08:00</div>
+        </div>
+        <div class="temp-card">
+          <div class="tc-name">ตู้แช่แข็ง (Plasma)</div>
+          <div class="tc-val ok">-20.3°C</div>
+          <div class="tc-range">เป้า: ≤ -20°C</div>
+          <div class="tc-time">บันทึกล่าสุด 08:00</div>
+        </div>
+        <div class="temp-card">
+          <div class="tc-name">ห้อง Lab อุณหภูมิ</div>
+          <div class="tc-val ok">23.1°C</div>
+          <div class="tc-range">เป้า: 18–26°C</div>
+          <div class="tc-time">บันทึกล่าสุด 08:00</div>
+        </div>
+        <div class="temp-card">
+          <div class="tc-name">Water Bath</div>
+          <div class="tc-val ok">37.0°C</div>
+          <div class="tc-range">เป้า: 37±0.5°C</div>
+          <div class="tc-time">บันทึกล่าสุด 07:45</div>
+        </div>
+        <div class="temp-card">
+          <div class="tc-name">Incubator</div>
+          <div class="tc-val bad">38.5°C</div>
+          <div class="tc-range">เป้า: 37±0.5°C 🔴 ผิดปกติ</div>
+          <div class="tc-time">บันทึกล่าสุด 07:45</div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-header-left">
+            <span class="icon">🌡️</span>
+            <h2>ประวัติอุณหภูมิ</h2>
+          </div>
+          <button class="btn btn-primary" onclick="openModal('tempModal')">+ บันทึกอุณหภูมิ</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>วันที่/เวลา</th>
+                <th>อุปกรณ์</th>
+                <th>อุณหภูมิ</th>
+                <th>ผู้บันทึก</th>
+                <th>สถานะ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>11 มิ.ย. 08:00</td><td>ตู้เย็น 1</td><td>4.2°C</td><td>เปรมฤทัย หลอมทอง</td><td><span class="badge badge-green">ปกติ</span></td></tr>
+              <tr><td>11 มิ.ย. 08:00</td><td>ตู้เย็น 2</td><td>8.9°C</td><td>เปรมฤทัย หลอมทอง</td><td><span class="badge badge-orange">เฝ้าระวัง</span></td></tr>
+              <tr><td>11 มิ.ย. 08:00</td><td>ตู้แช่แข็ง</td><td>-20.3°C</td><td>เปรมฤทัย หลอมทอง</td><td><span class="badge badge-green">ปกติ</span></td></tr>
+              <tr><td>11 มิ.ย. 07:45</td><td>Incubator</td><td>38.5°C</td><td>ณชนก พ่วงพี่อภิชัย</td><td><span class="badge badge-red">ผิดปกติ</span></td></tr>
+              <tr><td>10 มิ.ย. 16:00</td><td>ตู้เย็น 1</td><td>3.8°C</td><td>ณชนก พ่วงพี่อภิชัย</td><td><span class="badge badge-green">ปกติ</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ LAB STAFF ══ -->
+    <div class="page" id="page-staff">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h2 style="font-size:16px;font-weight:700">บุคลากรกลุ่มงานเทคนิคการแพทย์</h2>
+        <button class="btn btn-primary" onclick="openModal('staffModal')">+ เพิ่มบุคลากร</button>
+      </div>
+      <div class="staff-grid" id="staffGrid">
+        <div class="staff-card">
+          <div class="staff-avatar">ป</div>
+          <div class="staff-name">เปรมฤทัย หลอมทอง</div>
+          <div class="staff-role">นักเทคนิคการแพทย์</div>
+          <div class="staff-badge"><span class="badge badge-green">Active</span></div>
+        </div>
+        <div class="staff-card">
+          <div class="staff-avatar">ณ</div>
+          <div class="staff-name">ณชนก พ่วงพี่อภิชัย</div>
+          <div class="staff-role">นักเทคนิคการแพทย์</div>
+          <div class="staff-badge"><span class="badge badge-green">Active</span></div>
+        </div>
+        <div class="staff-card">
+          <div class="staff-avatar">ส</div>
+          <div class="staff-name">สุพิชญา รักษาแก้ว</div>
+          <div class="staff-role">นักเทคนิคการแพทย์</div>
+          <div class="staff-badge"><span class="badge badge-blue">ลางาน</span></div>
+        </div>
+        <div class="staff-card">
+          <div class="staff-avatar">อ</div>
+          <div class="staff-name">อนุชา ศรีสมบูรณ์</div>
+          <div class="staff-role">ผู้ช่วยเหลือคนไข้</div>
+          <div class="staff-badge"><span class="badge badge-green">Active</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ FEEDBACK ══ -->
+    <div class="page" id="page-feedback">
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-header-left"><span class="icon">💬</span><h2>Feedback / แจ้งปัญหา</h2></div>
+          <button class="btn btn-primary" onclick="openModal('feedbackModal')">+ แจ้งปัญหา</button>
+        </div>
+        <div>
+          <div class="log-item">
+            <div class="log-icon-wrap">🔴</div>
+            <div class="log-body">
+              <div class="log-name">เครื่อง ADVIA มีเสียงดัง</div>
+              <div class="log-sub">เปรมฤทัย หลอมทอง · เร่งด่วน</div>
+            </div>
+            <div class="log-time"><span class="badge badge-orange">รอดำเนินการ</span></div>
+          </div>
+          <div class="log-item">
+            <div class="log-icon-wrap">🟡</div>
+            <div class="log-body">
+              <div class="log-name">น้ำยาล้างเครื่อง XL-640 ใกล้หมด</div>
+              <div class="log-sub">ณชนก พ่วงพี่อภิชัย · ปานกลาง</div>
+            </div>
+            <div class="log-time"><span class="badge badge-blue">กำลังดำเนินการ</span></div>
+          </div>
+          <div class="log-item">
+            <div class="log-icon-wrap">🟢</div>
+            <div class="log-body">
+              <div class="log-name">ปรินเตอร์ label ขัดข้อง</div>
+              <div class="log-sub">สุพิชญา รักษาแก้ว · ต่ำ</div>
+            </div>
+            <div class="log-time"><span class="badge badge-green">แก้ไขแล้ว</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SETTINGS ══ -->
+    <div class="page" id="page-settings">
+      <div class="section-card" style="max-width:560px">
+        <div class="section-header">
+          <div class="section-header-left"><span class="icon">⚙️</span><h2>ตั้งค่าระบบ</h2></div>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:18px">
+          <div class="form-group">
+            <label class="form-label">ชื่อโรงพยาบาล</label>
+            <input class="form-input" value="โรงพยาบาลวังเจ้า">
+          </div>
+          <div class="form-group">
+            <label class="form-label">แผนก</label>
+            <input class="form-input" value="กลุ่มงานเทคนิคการแพทย์">
+          </div>
+          <div class="form-group">
+            <label class="form-label">แจ้งเตือนก่อนครบกำหนด (วัน)</label>
+            <input class="form-input" type="number" value="7">
+          </div>
+          <div class="form-group">
+            <label class="form-label">อีเมลแจ้งเตือน</label>
+            <input class="form-input" type="email" value="lab@wangchao-hospital.go.th">
+          </div>
+          <button class="btn btn-primary" style="align-self:flex-start" onclick="showToast('บันทึกการตั้งค่าเรียบร้อย ✅')">บันทึกการตั้งค่า</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ══ MODAL: Log Maintenance ══ -->
+<div class="modal-backdrop" id="logModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">บันทึกการบำรุงรักษา</div>
+      <button class="modal-close" onclick="closeModal('logModal')">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">เครื่องมือ</label>
+        <select class="form-select">
+          <option>Q4Lyte ex</option>
+          <option>XL-640</option>
+          <option>ADVIA 2120i</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ประเภทงาน</label>
+        <select class="form-select">
+          <option>Daily</option>
+          <option>Weekly</option>
+          <option>Monthly</option>
+          <option>Corrective</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">วันที่</label>
+        <input class="form-input" type="date" id="logDate">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ผู้บันทึก</label>
+        <select class="form-select">
+          <option>เปรมฤทัย หลอมทอง</option>
+          <option>ณชนก พ่วงพี่อภิชัย</option>
+          <option>สุพิชญา รักษาแก้ว</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ผลการตรวจสอบ</label>
+      <select class="form-select">
+        <option>ผ่าน</option>
+        <option>บกพร่องเล็กน้อย</option>
+        <option>ต้องซ่อม</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">หมายเหตุ</label>
+      <textarea class="form-textarea" placeholder="รายละเอียดการบำรุงรักษา..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('logModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="submitLog()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Temp ══ -->
+<div class="modal-backdrop" id="tempModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">บันทึกอุณหภูมิ</div>
+      <button class="modal-close" onclick="closeModal('tempModal')">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">อุปกรณ์</label>
+        <select class="form-select">
+          <option>ตู้เย็น 1 (Reagent)</option>
+          <option>ตู้เย็น 2 (Sample)</option>
+          <option>ตู้แช่แข็ง (Plasma)</option>
+          <option>Water Bath</option>
+          <option>Incubator</option>
+          <option>ห้อง Lab</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">อุณหภูมิ (°C)</label>
+        <input class="form-input" type="number" step="0.1" placeholder="เช่น 4.2">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">วันที่/เวลา</label>
+        <input class="form-input" type="datetime-local">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ผู้บันทึก</label>
+        <select class="form-select">
+          <option>เปรมฤทัย หลอมทอง</option>
+          <option>ณชนก พ่วงพี่อภิชัย</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">หมายเหตุ</label>
+      <textarea class="form-textarea" placeholder="หมายเหตุ (ถ้ามี)"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('tempModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="closeModal('tempModal');showToast('บันทึกอุณหภูมิเรียบร้อย ✅')">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Feedback ══ -->
+<div class="modal-backdrop" id="feedbackModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">แจ้งปัญหา / Feedback</div>
+      <button class="modal-close" onclick="closeModal('feedbackModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">หัวข้อ</label>
+      <input class="form-input" placeholder="อธิบายปัญหาโดยย่อ...">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">ความเร่งด่วน</label>
+        <select class="form-select">
+          <option>เร่งด่วน</option>
+          <option>ปานกลาง</option>
+          <option>ต่ำ</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">เครื่องมือที่เกี่ยวข้อง</label>
+        <select class="form-select">
+          <option>ไม่ระบุ</option>
+          <option>Q4Lyte ex</option>
+          <option>XL-640</option>
+          <option>ADVIA 2120i</option>
+          <option>อุปกรณ์อื่น</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">รายละเอียด</label>
+      <textarea class="form-textarea" placeholder="อธิบายรายละเอียดปัญหา..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('feedbackModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="closeModal('feedbackModal');showToast('ส่ง Feedback เรียบร้อย ✅')">ส่ง</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Staff ══ -->
+<div class="modal-backdrop" id="staffModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">เพิ่มบุคลากร</div>
+      <button class="modal-close" onclick="closeModal('staffModal')">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">ชื่อ</label>
+        <input class="form-input" id="newStaffName" placeholder="ชื่อ">
+      </div>
+      <div class="form-group">
+        <label class="form-label">นามสกุล</label>
+        <input class="form-input" id="newStaffSurname" placeholder="นามสกุล">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ตำแหน่ง</label>
+      <select class="form-select" id="newStaffRole">
+        <option>นักเทคนิคการแพทย์</option>
+        <option>ผู้ช่วยเหลือคนไข้</option>
+        <option>เจ้าหน้าที่ห้องปฏิบัติการ</option>
+        <option>หัวหน้างาน</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('staffModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="addStaff()">เพิ่ม</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // Init date
+  const today = new Date();
+  const thaiDays = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  const thaiMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  const buddhistYear = today.getFullYear() + 543;
+  document.getElementById('pageDate').textContent =
+    `วัน${thaiDays[today.getDay()]}ที่ ${today.getDate()} ${thaiMonths[today.getMonth()]} ${buddhistYear}`;
+
+  // Set default date in form
+  const logDateInput = document.getElementById('logDate');
+  if (logDateInput) logDateInput.value = today.toISOString().split('T')[0];
+
+  // Report data
+  const reportData = [
+    { date:'11 มิ.ย. 2569', equip:'XL-640',     type:'Daily',   user:'เปรมฤทัย หลอมทอง',      result:'ผ่าน',              status:'ปกติ' },
+    { date:'11 มิ.ย. 2569', equip:'Q4Lyte ex',  type:'Daily',   user:'เปรมฤทัย หลอมทอง',      result:'ผ่าน',              status:'ปกติ' },
+    { date:'11 มิ.ย. 2569', equip:'Q4Lyte ex',  type:'Daily',   user:'ณชนก พ่วงพี่อภิชัย',     result:'ผ่าน',              status:'ปกติ' },
+    { date:'10 มิ.ย. 2569', equip:'XL-640',     type:'Daily',   user:'ณชนก พ่วงพี่อภิชัย',     result:'บกพร่องเล็กน้อย',  status:'เฝ้าระวัง' },
+    { date:'10 มิ.ย. 2569', equip:'ADVIA 2120i', type:'Daily',  user:'สุพิชญา รักษาแก้ว',       result:'ผ่าน',              status:'ปกติ' },
+    { date:'9 มิ.ย. 2569',  equip:'Q4Lyte ex',  type:'Weekly',  user:'เปรมฤทัย หลอมทอง',      result:'ผ่าน',              status:'ปกติ' },
+    { date:'9 มิ.ย. 2569',  equip:'XL-640',     type:'Weekly',  user:'เปรมฤทัย หลอมทอง',      result:'ต้องซ่อม',          status:'เร่งด่วน' },
+    { date:'8 มิ.ย. 2569',  equip:'ADVIA 2120i', type:'Daily',  user:'ณชนก พ่วงพี่อภิชัย',     result:'ผ่าน',              status:'ปกติ' },
+    { date:'7 มิ.ย. 2569',  equip:'Q4Lyte ex',  type:'Daily',   user:'สุพิชญา รักษาแก้ว',       result:'ผ่าน',              status:'ปกติ' },
+    { date:'6 มิ.ย. 2569',  equip:'XL-640',     type:'Monthly', user:'เปรมฤทัย หลอมทอง',      result:'ผ่าน',              status:'ปกติ' },
+    { date:'5 มิ.ย. 2569',  equip:'ADVIA 2120i', type:'Monthly',user:'ณชนก พ่วงพี่อภิชัย',     result:'บกพร่องเล็กน้อย',  status:'เฝ้าระวัง' },
+    { date:'4 มิ.ย. 2569',  equip:'Q4Lyte ex',  type:'Daily',   user:'สุพิชญา รักษาแก้ว',       result:'ผ่าน',              status:'ปกติ' },
+  ];
+
+  const statusClass = { 'ปกติ':'badge-green', 'เฝ้าระวัง':'badge-orange', 'เร่งด่วน':'badge-red' };
+
+  function renderReport(data) {
+    const tbody = document.getElementById('reportBody');
+    tbody.innerHTML = data.map(r => `
+      <tr>
+        <td>${r.date}</td>
+        <td><strong>${r.equip}</strong></td>
+        <td><span class="badge badge-blue">${r.type}</span></td>
+        <td>${r.user}</td>
+        <td>${r.result}</td>
+        <td><span class="badge ${statusClass[r.status]||'badge-green'}">${r.status}</span></td>
+      </tr>`).join('');
+  }
+  renderReport(reportData);
+
+  function filterTable(val) {
+    const q = (val || document.querySelector('.filter-input').value || '').toLowerCase();
+    const eq = document.getElementById('filterEquip').value;
+    const tp = document.getElementById('filterType').value;
+    const filtered = reportData.filter(r =>
+      (!q || r.equip.toLowerCase().includes(q) || r.user.toLowerCase().includes(q)) &&
+      (!eq || r.equip === eq) &&
+      (!tp || r.type === tp)
+    );
+    renderReport(filtered);
+  }
+
+  // Navigation
+  function showPage(id, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    const titles = {
+      dashboard: 'วังเจ้า', report: 'Report',
+      maintenance: 'Maintenance Due', temperature: 'Temperature Logs',
+      staff: 'Lab Staff', feedback: 'Feedback', settings: 'Settings'
+    };
+    document.getElementById('pageTitle').textContent = titles[id] || id;
+  }
+
+  // Modal
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-backdrop').forEach(b => {
+    b.addEventListener('click', e => { if (e.target === b) b.classList.remove('open'); });
+  });
+
+  // Submit log
+  function submitLog() {
+    closeModal('logModal');
+    showToast('บันทึกเรียบร้อย ✅');
+    // Update dashboard counts
+    const done = parseInt(document.getElementById('doneCount').textContent);
+    document.getElementById('doneCount').textContent = done + 1;
+  }
+
+  // Add staff
+  function addStaff() {
+    const name = document.getElementById('newStaffName').value;
+    const surname = document.getElementById('newStaffSurname').value;
+    const role = document.getElementById('newStaffRole').value;
+    if (!name) return;
+    const grid = document.getElementById('staffGrid');
+    const card = document.createElement('div');
+    card.className = 'staff-card';
+    card.innerHTML = `
+      <div class="staff-avatar">${name[0]}</div>
+      <div class="staff-name">${name} ${surname}</div>
+      <div class="staff-role">${role}</div>
+      <div class="staff-badge"><span class="badge badge-green">Active</span></div>`;
+    grid.appendChild(card);
+    closeModal('staffModal');
+    showToast('เพิ่มบุคลากรเรียบร้อย ✅');
+    document.getElementById('newStaffName').value = '';
+    document.getElementById('newStaffSurname').value = '';
+  }
+
+  // Toast
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // ══ AUTH ══
+  const USERS = [
+    { username:'premruethai',  password:'1234', name:'เปรมฤทัย หลอมทอง',    role:'นักเทคนิคการแพทย์', initial:'ป' },
+    { username:'nachonok',     password:'1234', name:'ณชนก พ่วงพี่อภิชัย',   role:'นักเทคนิคการแพทย์', initial:'ณ' },
+    { username:'suphitchaya',  password:'1234', name:'สุพิชญา รักษาแก้ว',    role:'นักเทคนิคการแพทย์', initial:'ส' },
+    { username:'anucha',       password:'1234', name:'อนุชา ศรีสมบูรณ์',     role:'ผู้ช่วยเหลือคนไข้',  initial:'อ' },
+    { username:'admin',        password:'admin123', name:'ผู้ดูแลระบบ',      role:'Administrator',       initial:'A' },
+  ];
+
+  let currentUser = null;
+  let loginTime   = null;
+  let sessionTick = null;
+
+  function doLogin() {
+    const u = document.getElementById('loginUsername').value.trim();
+    const p = document.getElementById('loginPassword').value;
+    const err = document.getElementById('loginError');
+    const found = USERS.find(x => x.username === u && x.password === p);
+    if (!found) {
+      err.classList.add('show');
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('loginPassword').focus();
+      return;
+    }
+    err.classList.remove('show');
+    loginSuccess(found);
+  }
+
+  function quickLogin(u, p) {
+    document.getElementById('loginUsername').value = u;
+    document.getElementById('loginPassword').value = p;
+    document.getElementById('loginError').classList.remove('show');
+    const found = USERS.find(x => x.username === u && x.password === p);
+    if (found) loginSuccess(found);
+  }
+
+  function loginSuccess(user) {
+    currentUser = user;
+    loginTime   = new Date();
+
+    // Update UI
+    document.getElementById('sessionName').textContent = user.name;
+    document.getElementById('sessionRole').textContent = user.role;
+    document.querySelector('.avatar').textContent = user.initial;
+    document.querySelector('.avatar').title = user.name;
+
+    // Topbar avatar click → logout prompt
+    document.querySelector('.avatar').onclick = requestLogout;
+
+    // Hide login screen
+    document.getElementById('loginScreen').classList.add('hidden');
+
+    // Start session clock
+    clearInterval(sessionTick);
+    sessionTick = setInterval(updateSessionClock, 1000);
+    updateSessionClock();
+
+    showToast('ยินดีต้อนรับ ' + user.name + ' 👋');
+  }
+
+  function updateSessionClock() {
+    if (!loginTime) return;
+    const diff = Math.floor((Date.now() - loginTime) / 1000);
+    const h = String(Math.floor(diff / 3600)).padStart(2,'0');
+    const m = String(Math.floor((diff % 3600) / 60)).padStart(2,'0');
+    const s = String(diff % 60).padStart(2,'0');
+    document.getElementById('sessionTime').textContent = `เวลาใช้งาน ${h}:${m}:${s}`;
+  }
+
+  function requestLogout() {
+    if (!currentUser) return;
+    document.getElementById('logoutSubtext').textContent =
+      currentUser.name + ' ต้องการออกจากระบบใช่หรือไม่?';
+    document.getElementById('logoutConfirm').classList.add('open');
+  }
+
+  function confirmLogout() {
+    document.getElementById('logoutConfirm').classList.remove('open');
+    clearInterval(sessionTick);
+
+    // Reset form
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginError').classList.remove('show');
+    document.getElementById('sessionTime').textContent = '';
+
+    const name = currentUser ? currentUser.name : '';
+    currentUser = null;
+    loginTime   = null;
+
+    // Show login screen
+    document.getElementById('loginScreen').classList.remove('hidden');
+    showToast('ออกจากระบบแล้ว · ' + name);
+  }
+
+  function togglePwd() {
+    const inp = document.getElementById('loginPassword');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+</script>
+</body>
+</html>
